@@ -57,6 +57,45 @@ function prompt_paradox_build_prompt {
     prompt_paradox_start_segment white black '${(e)python_info[virtualenv]}'
   fi
 
+  # direnv information.
+  enable_direnv_info=0
+  which direnv > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    DIRENV_DATA=$(direnv status)
+    echo ${DIRENV_DATA} | grep "No .envrc" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        enable_direnv_info=1
+    fi
+  fi
+  if [ $enable_direnv_info -eq 1 ]; then
+    prompt_paradox_start_segment magenta white '☑ '
+  fi
+
+  # Get AWS environment information.
+  enable_aws_info=1
+  if [ "$AWS_DEFAULT_PROFILE" = "" ]; then
+    if [ "$AWS_PROFILE" = "" ]; then
+      enable_aws_info=0
+    fi
+  fi
+  if [ $enable_aws_info -eq 1 ]; then
+    AWS_DATA=$(aws configure list 2>/dev/null)
+    AWS_PROFILE=$(echo ${AWS_DATA} | grep 'profile' | sed -e 's/^[ ]*//g' | awk '{print $2}')
+    AWS_REGION=$(echo ${AWS_DATA} | grep 'region' | sed -e 's/^[ ]*//g' | awk '{print $2}')
+    prompt_paradox_start_segment yellow white '☁ ${AWS_PROFILE}'
+    prompt_paradox_start_segment blue white '✿ ${AWS_REGION}'
+  fi
+
+  # Terraform environment information.
+  enable_tf_info=0
+  which terraform > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    TF_WORKSPACE=$(terraform workspace show 2>/dev/null)
+    if [ $? -eq 0 ] && [ "${TF_WORKSPACE}" != "default" ]; then
+      prompt_paradox_start_segment cyan black "✜ ${TF_WORKSPACE}"
+    fi
+  fi
+
   prompt_paradox_end_segment
 }
 

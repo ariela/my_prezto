@@ -11,3 +11,8 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 # Customize to your needs...
+for f in ~/.zsh/[0-9]*.zsh
+do
+    echo "Loading: ${f}"
+    source ${f}
+done
